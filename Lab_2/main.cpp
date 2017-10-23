@@ -7,6 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 
 struct Vector {
@@ -24,6 +25,10 @@ void vector_init(struct Vector* v) {
 
 
 bool vector_push_back(struct Vector* v, int x) {
+    if (v->capacity >= SIZE_MAX / 2 + 1) {
+        return false;
+    }
+
     if (v->size == v->capacity) {
         int* new_v = (int*) realloc(v->v, sizeof(int) * (2 * v->capacity));
         if (new_v) {
