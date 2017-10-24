@@ -25,11 +25,11 @@ void vector_init(struct Vector* v) {
 
 
 bool vector_push_back(struct Vector* v, int x) {
-    if (v->capacity >= SIZE_MAX / 2 + 1) {
-        return false;
-    }
-
     if (v->size == v->capacity) {
+        if (v->capacity >= SIZE_MAX / 2 + 1) {
+            return false;
+        }
+
         int* new_v = (int*) realloc(v->v, sizeof(int) * (2 * v->capacity));
         if (new_v) {
             v->capacity *= 2;
