@@ -60,22 +60,37 @@ void vector_free(struct Vector* v) {
 }
 
 
-void map_operation(struct Vector* v, char str[20], int num) {
-    char push_back[20] = "push_back";
-    char at[20] = "at";
+int map_operation(struct Vector* v) {
+    static char push_back[20] = "push_back";
+    static char at[20] = "at";
+
+    static char str[20];
+    static int x;
+    static size_t index;
+
+    int res = scanf("%s", str);
+
+    if (res == EOF) {
+        return res;
+    }
 
     if (strcmp(str, push_back) == 0) {
-        vector_push_back(v, num);
-        return;
+        res = scanf("%d", &x);
+        vector_push_back(v, x);
+
+        return res;
     }
     if (strcmp(str, at) == 0) {
-        const int* ptr = vector_at(v, (size_t) num);
+        res = scanf("%zu", &index);
+
+        const int* ptr = vector_at(v, index);
         if (ptr == NULL) {
             printf("out_of_range\n");
         } else {
             printf("%d\n", *ptr);
         }
-        return;
+
+        return res;
     }
 
     perror("Bad command name");
@@ -86,13 +101,7 @@ int main() {
     struct Vector vector;
     vector_init(&vector);
 
-
-    char str[20] = {'\0'};
-    int num;
-
-    while (scanf("%s %d", str, &num) != EOF) {
-        map_operation(&vector, str, num);
-    }
+    while (map_operation(&vector) != EOF);
 
     vector_free(&vector);
     return 0;
