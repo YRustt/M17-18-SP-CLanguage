@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -17,20 +16,21 @@ struct Vector {
 };
 
 
-void vector_init(struct Vector* v) {
+bool vector_init(struct Vector* v) {
     v->capacity = 1;
     v->size = 0;
     v->v = (int*) malloc(sizeof(int));
+    return (bool) v->v;
 }
 
 
 bool vector_push_back(struct Vector* v, int x) {
     if (v->size == v->capacity) {
-        if (v->capacity >= SIZE_MAX / 2 + 1) {
+        if (v->capacity >= SIZE_MAX / (sizeof(int) * 2) + 1) {
             return false;
         }
 
-        int* new_v = (int*) realloc(v->v, sizeof(int) * (2 * v->capacity));
+        int* new_v = (int*) realloc(v->v, (sizeof(int) * 2) * v->capacity);
         if (new_v) {
             v->capacity *= 2;
             v->v = new_v;
@@ -94,12 +94,16 @@ int map_operation(struct Vector* v) {
     }
 
     perror("Bad command name");
+    return res;
 }
 
 
 int main() {
     struct Vector vector;
-    vector_init(&vector);
+
+    if (!vector_init(&vector)) {
+        return 1;
+    }
 
     while (map_operation(&vector) != EOF);
 
