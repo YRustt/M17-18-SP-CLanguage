@@ -22,7 +22,6 @@ void calc_hash(FILE *file, struct Hash *hash) {
 
 
 int calc_hash_from_file(const char *path, struct Hash *hash) {
-    int bytes;
     FILE *in = fopen(path, "rb");
 
     if (in == NULL) {
