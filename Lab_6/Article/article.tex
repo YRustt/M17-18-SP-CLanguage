@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\usepackage[left=1.5cm,right=1.5cm, top=1.5cm,bottom=1.5cm,bindingoffset=0cm]{geometry}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{listings}
+
+
+\begin{document}
+\section{C-расширения}
+
+\subsection{Часть 1. ctypes}
+
+В \textbf{sum1.c} запишем функцию для подсчёта суммы цифр числа:
+\begin{lstlisting}[language=C, xleftmargin=\parindent, frame=L, numbers=left]
+unsigned digit_sum(unsigned x) {
+    unsigned ans = 0;
+    while (x != 0) {
+        ans += x % 10;
+        x /= 10;
+    }
+    return ans;
+}
+\end{lstlisting}
+Соберём $shared\ library$ из нашего исходника следующим образом:
+\begin{lstlisting}[language=bash, xleftmargin=\parindent]
+gcc -O3 -shared -o sum1.so -fPIC sum1.c
+\end{lstlisting}
+В \textbf{py1.py} при помощи библиотеки $ctypes$ загрузим нашу $shared\ library$ и посчитаем сумму цифр чисел от $0$ до $100$ млн.:
+\begin{lstlisting}[language=Python, xleftmargin=\parindent, frame=L, numbers=left]
+from ctypes import CDLL
+
+
+libc = CDLL("sum1.so")
+digit_sum = libc.digit_sum
+
+
+res = 0
+for i in range(100000000):
+    res += digit_sum(i)
+
+print(res)
+\end{lstlisting}
+Запустим и посмотрим на результаты:
+\begin{lstlisting}
+yrustt@yrustt:~/Desktop/Projects/M17-18-SPCL/Lab_6$ time python3 py1.py 
+3600000000
+
+real    0m44.089s
+user    0m44.064s
+sys     0m0.004s
+\end{lstlisting}
+\newpage
+\subsection{Часть 2. CPython Extension Module}
+
+В \textbf{sum2module.c} определим функцию $digit\_sum$. 
+\newline
+\newline
+Также в этом файле определяем массив структур $PyMethodDef$ - функции, которые могут вызываться из $python$-кода. Флаг $METH\_VARARGS$ указывает, что мы не будем передавать $keyword$ аргументы в функцию при вызове, что позволяет нам воспользоваться функцией $PyArg\_ParseTuple$.
+\newline
+\newline
+Также определим структуру $PyModuleDef$.
+\begin{lstlisting}[language=C, xleftmargin=\parindent, frame=L, numbers=left]
+static PyObject* digit_sum(PyObject *self, PyObject *args) {
+    int x, ans = 0;
+    if (!PyArg_ParseTuple(args, "i", &x)) return NULL;
+
+    while (x != 0) {
+        ans += x % 10;
+        x /= 10;
+    }
+
+    return Py_BuildValue("i", ans);
+}
+...
+\end{lstlisting}
+В \textbf{setup.py} определим:
+\begin{lstlisting}[language=Python, xleftmargin=\parindent, frame=L, numbers=left]
+from distutils.core import setup, Extension
+
+setup(
+    name='sum2',
+    version='0.0.1',
+    ext_modules=[Extension('sum2', ['sum2module.c'])]
+)
+\end{lstlisting}
+Чтобы получить $shared\ library$ из нашего $c$-кода, запускаем:
+\begin{lstlisting}[language=bash, xleftmargin=\parindent]
+python3 setup.py install
+\end{lstlisting}
+В \textbf{py2.py} импортируем наш модуль и посчитаем сумму цифр чисел от $0$ до $100$ млн.:
+\begin{lstlisting}[language=Python, xleftmargin=\parindent, frame=L, numbers=left]
+import sum2
+
+res = 0
+for i in range(100000000):
+    res += sum2.digit_sum(i)
+
+print(res)
+\end{lstlisting}
+Запустим и посмотрим на результаты:
+\begin{lstlisting}
+yrustt@yrustt:~/Desktop/Projects/M17-18-SPCL/Lab_7$ time python3 py2.py 
+3600000000
+
+real    0m29.391s
+user    0m29.388s
+sys     0m0.000s
+\end{lstlisting}
+\newpage
+\subsection{Бенчмарк}
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Method} & \textbf{Time (s)} \\
+\hline
+Python & 150.192 \\
+\hline
+ctypes & 44.089 \\
+\hline
+CPython Extension Module & 29.391 \\
+\hline
+\end{tabular}
+\end{document}
