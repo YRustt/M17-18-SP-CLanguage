@@ -1,3 +1,0 @@
-/home/yrustt/Desktop/Projects/M17-18-SPCL/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/yrustt/Desktop/Projects/M17-18-SPCL/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/yrustt/Desktop/Projects/M17-18-SPCL/cmake-build-debug/CMakeFiles/main.dir
